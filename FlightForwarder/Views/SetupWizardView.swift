@@ -155,15 +155,35 @@ struct CarrierSelectionStep: View {
             if let detected = configurationManager.detectedCarrier {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Image(systemName: configurationManager.carrierConfidence == .high ? "checkmark.circle.fill" : "questionmark.circle.fill")
-                            .foregroundColor(configurationManager.carrierConfidence == .high ? .green : .orange)
+                        Image(systemName: configurationManager.carrierConfidence == .high ? "checkmark.circle.fill" : 
+                              configurationManager.detectedCarrierName == "Wi-Fi Calling Active" ? "wifi" :
+                              configurationManager.detectedCarrierName == "Detection Failed" ? "exclamationmark.triangle.fill" : "questionmark.circle.fill")
+                            .foregroundColor(configurationManager.carrierConfidence == .high ? .green : 
+                                           configurationManager.detectedCarrierName == "Wi-Fi Calling Active" ? .blue :
+                                           configurationManager.detectedCarrierName == "Detection Failed" ? .red : .orange)
                         VStack(alignment: .leading) {
-                            Text("Detected: \(detected.rawValue)")
-                                .fontWeight(.medium)
-                            if let detectedName = configurationManager.detectedCarrierName {
-                                Text("Network: \(detectedName)")
+                            if configurationManager.detectedCarrierName == "Wi-Fi Calling Active" {
+                                Text("Wi-Fi Calling Detected")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.blue)
+                                Text("Wi-Fi calling is blocking carrier detection. Please select your carrier manually below.")
                                     .font(.caption)
                                     .foregroundColor(.secondary)
+                            } else if configurationManager.detectedCarrierName == "Detection Failed" {
+                                Text("Carrier Detection Failed")
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.red)
+                                Text("Please select your carrier manually below")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            } else {
+                                Text("Detected: \(detected.rawValue)")
+                                    .fontWeight(.medium)
+                                if let detectedName = configurationManager.detectedCarrierName {
+                                    Text("Network: \(detectedName)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
                             }
                         }
                     }
@@ -182,7 +202,7 @@ struct CarrierSelectionStep: View {
                 .padding(.horizontal)
             }
             
-            if showManualSelection || configurationManager.detectedCarrier == nil || configurationManager.carrierConfidence == .low {
+            if showManualSelection || configurationManager.detectedCarrier == nil || configurationManager.carrierConfidence == .low || configurationManager.detectedCarrierName == "Detection Failed" || configurationManager.detectedCarrierName == "Wi-Fi Calling Active" {
                 ScrollView {
                     VStack(spacing: 12) {
                         ForEach(CarrierType.allCases, id: \.self) { carrier in
