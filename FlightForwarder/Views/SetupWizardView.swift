@@ -11,7 +11,7 @@ struct SetupWizardView: View {
     @State private var internationalBehavior: InternationalOptions = .alwaysForward
     @State private var promptStyle: PromptPreferences = .detailed
     
-    let steps = ["Carrier", "Phone Number", "Detection", "Preferences", "Review"]
+    let steps = ["SIM Status", "Carrier", "Phone Number", "Detection", "Preferences", "Review"]
     
     var body: some View {
         NavigationView {
@@ -21,20 +21,23 @@ struct SetupWizardView: View {
                     .padding(.top)
                 
                 TabView(selection: $currentStep) {
-                    CarrierSelectionStep(selectedCarrier: $selectedCarrier)
+                    SIMStatusStep()
                         .tag(0)
                     
-                    PhoneNumberStep(forwardingNumber: $forwardingNumber)
+                    CarrierSelectionStep(selectedCarrier: $selectedCarrier)
                         .tag(1)
                     
-                    DetectionMethodsStep(selectedMethods: $selectedDetectionMethods)
+                    PhoneNumberStep(forwardingNumber: $forwardingNumber)
                         .tag(2)
+                    
+                    DetectionMethodsStep(selectedMethods: $selectedDetectionMethods)
+                        .tag(3)
                     
                     PreferencesStep(
                         internationalBehavior: $internationalBehavior,
                         promptStyle: $promptStyle
                     )
-                    .tag(3)
+                    .tag(4)
                     
                     ReviewStep(
                         carrier: selectedCarrier,
@@ -43,7 +46,7 @@ struct SetupWizardView: View {
                         internationalBehavior: internationalBehavior,
                         promptStyle: promptStyle
                     )
-                    .tag(4)
+                    .tag(5)
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 
@@ -94,9 +97,9 @@ struct SetupWizardView: View {
     
     var isCurrentStepValid: Bool {
         switch currentStep {
-        case 1:
+        case 2: // Phone Number step
             return configurationManager.validatePhoneNumber(forwardingNumber)
-        case 2:
+        case 3: // Detection methods step
             return !selectedDetectionMethods.isEmpty
         default:
             return true
@@ -648,6 +651,100 @@ struct InfoCard: View {
         .padding()
         .background(Color.blue.opacity(0.1))
         .cornerRadius(8)
+    }
+}
+
+struct SIMStatusStep: View {
+    @EnvironmentObject var configurationManager: ConfigurationManager
+    
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                Text("SIM Status Check")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .padding(.horizontal)
+                
+                if let simStatus = configurationManager.simStatus {
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Status card
+                        HStack {
+                            Image(systemName: simStatus.isUnlocked ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                                .font(.title)
+                                .foregroundColor(simStatus.isUnlocked ? .green : .orange)
+                            
+                            VStack(alignment: .leading) {
+                                Text(simStatus.isUnlocked ? "SIM Unlocked" : "SIM Status Unknown")
+                                    .font(.headline)
+                                    .fontWeight(.medium)
+                                
+                                if simStatus.isDualSIM {
+                                    Text("Dual SIM Capable")
+                                        .font(.subheadline)
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(12)
+                        .padding(.horizontal)
+                        
+                        // Main message
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text(configurationManager.simDetector.getUnlockMessage(status: simStatus))
+                                .font(.body)
+                                .padding()
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(12)
+                                .padding(.horizontal)
+                            
+                            // Technical details (collapsible)
+                            DisclosureGroup("Technical Details") {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("SIM Slots: \(simStatus.simCount)")
+                                        .font(.caption)
+                                    
+                                    if !simStatus.carriers.isEmpty {
+                                        Text("Active Carriers: \(simStatus.carriers.joined(separator: ", "))")
+                                            .font(.caption)
+                                    }
+                                    
+                                    Text("Detection Confidence: \(simStatus.confidence == .high ? "High" : simStatus.confidence == .medium ? "Medium" : "Low")")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.top, 8)
+                            }
+                            .padding(.horizontal)
+                            .font(.subheadline)
+                        }
+                    }
+                } else {
+                    // Loading state
+                    VStack {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                            .padding()
+                        Text("Checking SIM status...")
+                            .font(.body)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                }
+                
+                Spacer(minLength: 40)
+            }
+        }
+        .onAppear {
+            // Trigger detection if not already done
+            if configurationManager.simStatus == nil {
+                configurationManager.detectSIMStatus()
+            }
+        }
     }
 }
 

@@ -21,6 +21,7 @@
 		FF0001000000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000012 /* Assets.xcassets */; };
 		FF0001000000000000000013 /* CarrierDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000013 /* CarrierDetection.swift */; };
 		FF0001000000000000000014 /* GoogleVoiceSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000014 /* GoogleVoiceSetupView.swift */; };
+		FF0001000000000000000015 /* SIMStatusDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000015 /* SIMStatusDetector.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +40,7 @@
 		FF0002000000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FF0002000000000000000013 /* CarrierDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarrierDetection.swift; sourceTree = "<group>"; };
 		FF0002000000000000000014 /* GoogleVoiceSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleVoiceSetupView.swift; sourceTree = "<group>"; };
+		FF0002000000000000000015 /* SIMStatusDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SIMStatusDetector.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -109,6 +111,7 @@
 				FF0002000000000000000005 /* ConfigurationManager.swift */,
 				FF0002000000000000000006 /* ShortcutGenerator.swift */,
 				FF0002000000000000000013 /* CarrierDetection.swift */,
+				FF0002000000000000000015 /* SIMStatusDetector.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -194,6 +197,7 @@
 				FF0001000000000000000011 /* SettingsView.swift in Sources */,
 				FF0001000000000000000013 /* CarrierDetection.swift in Sources */,
 				FF0001000000000000000014 /* GoogleVoiceSetupView.swift in Sources */,
+				FF0001000000000000000015 /* SIMStatusDetector.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

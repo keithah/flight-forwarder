@@ -7,10 +7,12 @@ class ConfigurationManager: ObservableObject {
     @Published var detectedCarrier: CarrierType?
     @Published var carrierConfidence: CarrierDetector.CarrierInfo.Confidence = .low
     @Published var detectedCarrierName: String?
+    @Published var simStatus: SIMStatusDetector.SIMStatus?
     
     private let userDefaults = UserDefaults.standard
     private let configKey = "userConfiguration"
     private let carrierDetector = CarrierDetector()
+    let simDetector = SIMStatusDetector() // Public so views can access helper methods
     
     init() {
         if let data = userDefaults.data(forKey: configKey),
@@ -20,6 +22,7 @@ class ConfigurationManager: ObservableObject {
             self.configuration = UserConfiguration()
         }
         
+        detectSIMStatus()
         detectCarrier()
     }
     
@@ -77,10 +80,16 @@ class ConfigurationManager: ObservableObject {
         }
     }
     
+    func detectSIMStatus() {
+        simStatus = simDetector.detectSIMStatus()
+    }
+    
     func reset() {
         configuration = UserConfiguration()
         detectedCarrier = nil
+        simStatus = nil
         userDefaults.removeObject(forKey: configKey)
+        detectSIMStatus()
         detectCarrier()
     }
 }
