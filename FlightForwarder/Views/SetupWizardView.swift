@@ -40,14 +40,18 @@ struct SetupWizardView: View {
                     )
                     .tag(4)
                     
+                    DisableOptionsStep(disableOption: $disableOption)
+                        .tag(5)
+                    
                     ReviewStep(
                         carrier: selectedCarrier,
                         forwardingNumber: forwardingNumber,
                         detectionMethods: selectedDetectionMethods,
                         internationalBehavior: internationalBehavior,
-                        promptStyle: promptStyle
+                        promptStyle: promptStyle,
+                        disableOption: disableOption
                     )
-                    .tag(5)
+                    .tag(6)
                 }
                 .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 
@@ -597,6 +601,7 @@ struct ReviewStep: View {
     let detectionMethods: Set<DetectionMethod>
     let internationalBehavior: InternationalOptions
     let promptStyle: PromptPreferences
+    let disableOption: DisableForwardingOption
     
     var body: some View {
         ScrollView {
@@ -611,6 +616,7 @@ struct ReviewStep: View {
                     ReviewRow(label: "Detection", value: detectionMethods.map { $0.rawValue }.joined(separator: ", "))
                     ReviewRow(label: "International", value: internationalBehavior.rawValue)
                     ReviewRow(label: "Prompts", value: promptStyle.rawValue)
+                    ReviewRow(label: "Disable", value: disableOption.rawValue)
                 }
                 
                 InfoCard(text: "After completing setup, you'll be able to preview and export your custom shortcut.")
@@ -653,6 +659,42 @@ struct InfoCard: View {
         .padding()
         .background(Color.blue.opacity(0.1))
         .cornerRadius(8)
+    }
+}
+
+struct DisableOptionsStep: View {
+    @Binding var disableOption: DisableForwardingOption
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text("Disable Forwarding")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding(.horizontal)
+            
+            Text("Choose when to automatically disable call forwarding after your trip")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .padding(.horizontal)
+            
+            VStack(alignment: .leading, spacing: 16) {
+                ForEach(DisableForwardingOption.allCases, id: \.self) { option in
+                    RadioButton(
+                        title: option.rawValue,
+                        description: option.description,
+                        isSelected: disableOption == option,
+                        action: { disableOption = option }
+                    )
+                }
+            }
+            .padding(.horizontal)
+            
+            InfoCard(text: "Automatic options help ensure you don't miss calls after returning from your trip. You can always manually disable forwarding anytime.")
+                .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.vertical)
     }
 }
 
