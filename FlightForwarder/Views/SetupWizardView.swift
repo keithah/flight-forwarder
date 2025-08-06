@@ -11,6 +11,8 @@ struct SetupWizardView: View {
     @State private var internationalBehavior: InternationalOptions = .alwaysForward
     @State private var promptStyle: PromptPreferences = .detailed
     @State private var disableOption: DisableForwardingOption = .automatic
+    @State private var customForwardingCode: String? = nil
+    @State private var customDisableCode: String? = nil
     
     let steps = ["SIM Status", "Carrier", "Phone Number", "Detection", "Preferences", "Disable Options", "Review"]
     
@@ -25,8 +27,12 @@ struct SetupWizardView: View {
                     SIMStatusStep()
                         .tag(0)
                     
-                    CarrierSelectionStep(selectedCarrier: $selectedCarrier)
-                        .tag(1)
+                    CarrierSelectionStep(
+                        selectedCarrier: $selectedCarrier,
+                        customForwardingCode: $customForwardingCode,
+                        customDisableCode: $customDisableCode
+                    )
+                    .tag(1)
                     
                     PhoneNumberStep(forwardingNumber: $forwardingNumber)
                         .tag(2)
@@ -119,6 +125,8 @@ struct SetupWizardView: View {
             detectionMethods: selectedDetectionMethods,
             internationalBehavior: internationalBehavior,
             promptStyle: promptStyle,
+            customForwardingCode: customForwardingCode,
+            customDisableCode: customDisableCode,
             disableOption: disableOption
         )
         configurationManager.update(configuration: config)
@@ -152,7 +160,11 @@ struct ProgressBar: View {
 struct CarrierSelectionStep: View {
     @EnvironmentObject var configurationManager: ConfigurationManager
     @Binding var selectedCarrier: CarrierType
+    @Binding var customForwardingCode: String?
+    @Binding var customDisableCode: String?
     @State private var showManualSelection = false
+    @State private var tempForwardingCode = "*72"
+    @State private var tempDisableCode = "*73"
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -249,6 +261,54 @@ struct CarrierSelectionStep: View {
             if selectedCarrier.requiresAppForForwarding {
                 InfoCard(text: selectedCarrier.instructions)
                     .padding(.horizontal)
+            }
+            
+            // Custom codes input for "Other" carrier
+            if selectedCarrier == .other {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Enter Custom Forwarding Codes")
+                        .font(.headline)
+                        .padding(.horizontal)
+                    
+                    VStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Enable Forwarding Code")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            HStack {
+                                TextField("e.g., *72 or **21*", text: $tempForwardingCode)
+                                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    .onChange(of: tempForwardingCode) { value in
+                                        customForwardingCode = value.isEmpty ? nil : value
+                                    }
+                                Text("+ [phone number]")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            .padding(.horizontal)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Disable Forwarding Code")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal)
+                            
+                            TextField("e.g., *73 or ##21#", text: $tempDisableCode)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                                .onChange(of: tempDisableCode) { value in
+                                    customDisableCode = value.isEmpty ? nil : value
+                                }
+                                .padding(.horizontal)
+                        }
+                    }
+                    
+                    InfoCard(text: "These codes depend on your carrier. Check with your carrier for the correct call forwarding codes.")
+                        .padding(.horizontal)
+                }
+                .padding(.vertical)
             }
         }
         .padding(.vertical)
