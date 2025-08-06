@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSCalendarsUsageDescription</key>
+    <string>FlightForwarder needs access to your calendar to detect flight events for automatic call forwarding.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>FlightForwarder needs location access to detect when you're at an airport.</string>
+    <key>NSContactsUsageDescription</key>
+    <string>FlightForwarder uses contacts to help you select forwarding numbers.</string>
+</dict>
+</plist>
