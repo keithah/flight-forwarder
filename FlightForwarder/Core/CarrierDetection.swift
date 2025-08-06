@@ -33,43 +33,47 @@ class CarrierDetector {
         let carrier: CarrierType
         let confidence: Confidence
         let detectedName: String?
+        let isOnWiFi: Bool
+        let supportsWiFiCalling: Bool
+        let detectionMethod: DetectionMethod
+        let carrierDetails: [CarrierDetails]
         
         enum Confidence {
             case high   // Detected via MNC code
             case medium // Detected via carrier name
             case low    // Unknown/manual selection needed
         }
+        
+        enum DetectionMethod {
+            case mncCode
+            case carrierName
+            case wifiCallingEnabled
+            case networkAnalysis
+            case failed
+        }
+    }
+    
+    struct CarrierDetails {
+        let name: String
+        let mcc: String
+        let mnc: String
+        let serviceIdentifier: String
+        let allowsVOIP: Bool
     }
     
     func detectCarrier() -> CarrierInfo {
-        // Debug logging - let's see what we're actually getting
-        print("🔍 Carrier Detection Debug:")
+        print("🔍 Enhanced Carrier Detection with Wi-Fi Calling Support:")
         
-        // Check all available providers
-        if let providers = networkInfo.serviceSubscriberCellularProviders {
-            print("📱 Multiple providers found: \(providers.count)")
-            for (key, carrier) in providers {
-                print("  Provider \(key):")
-                print("    Carrier Name: \(carrier.carrierName ?? "nil")")
-                print("    MNC: \(carrier.mobileNetworkCode ?? "nil")")
-                print("    MCC: \(carrier.mobileCountryCode ?? "nil")")
-                print("    ISO Country Code: \(carrier.isoCountryCode ?? "nil")")
-                print("    Allows VOIP: \(carrier.allowsVOIP)")
-            }
-        } else {
-            print("📱 No multiple providers")
-        }
+        // Check network connection status
+        let isOnWiFi = isConnectedToWiFi()
+        let supportsWiFiCalling = checkWiFiCallingSupport()
+        let carrierDetails = extractCarrierDetails()
         
-        // Single SIM check
-        if let carrier = networkInfo.subscriberCellularProvider {
-            print("📱 Single provider:")
-            print("  Carrier Name: \(carrier.carrierName ?? "nil")")
-            print("  MNC: \(carrier.mobileNetworkCode ?? "nil")")
-            print("  MCC: \(carrier.mobileCountryCode ?? "nil")")
-            print("  ISO Country Code: \(carrier.isoCountryCode ?? "nil")")
-            print("  Allows VOIP: \(carrier.allowsVOIP)")
-        } else {
-            print("📱 No single provider")
+        print("📶 Connection status - Wi-Fi: \(isOnWiFi), Wi-Fi Calling: \(supportsWiFiCalling)")
+        print("📱 Found \(carrierDetails.count) carrier details")
+        
+        for detail in carrierDetails {
+            print("  \(detail.serviceIdentifier): \(detail.name) (MCC: \(detail.mcc), MNC: \(detail.mnc), VoIP: \(detail.allowsVOIP))")
         }
         
         // Try MNC code detection first (most reliable)
@@ -115,19 +119,21 @@ class CarrierDetector {
         if hasInvalidCarrierData && isOnWiFi {
             // This is likely Wi-Fi calling blocking carrier detection
             print("📶 Wi-Fi calling likely active, carrier info blocked")
-            return CarrierInfo(
+            return createEnhancedCarrierInfo(
                 carrier: .att, // We'll change UI to show Wi-Fi calling message
                 confidence: .low,
-                detectedName: "Wi-Fi Calling Active"
+                detectedName: "Wi-Fi Calling Active",
+                method: .wifiCallingEnabled
             )
         }
         
         // Final fallback - complete detection failure
         print("❌ All detection methods failed")
-        return CarrierInfo(
+        return createEnhancedCarrierInfo(
             carrier: .att, // We'll change UI to show "Detection Failed"
             confidence: .low,
-            detectedName: "Detection Failed"
+            detectedName: "Detection Failed",
+            method: .failed
         )
     }
     
@@ -137,10 +143,11 @@ class CarrierDetector {
             for (_, carrier) in providers {
                 if let mnc = carrier.mobileNetworkCode,
                    let mappedCarrier = carrierMNCMap[mnc] {
-                    return CarrierInfo(
+                    return createEnhancedCarrierInfo(
                         carrier: mappedCarrier,
                         confidence: .high,
-                        detectedName: carrier.carrierName
+                        detectedName: carrier.carrierName,
+                        method: .mncCode
                     )
                 }
             }
@@ -150,10 +157,11 @@ class CarrierDetector {
         if let carrier = networkInfo.subscriberCellularProvider,
            let mnc = carrier.mobileNetworkCode,
            let mappedCarrier = carrierMNCMap[mnc] {
-            return CarrierInfo(
+            return createEnhancedCarrierInfo(
                 carrier: mappedCarrier,
                 confidence: .high,
-                detectedName: carrier.carrierName
+                detectedName: carrier.carrierName,
+                method: .mncCode
             )
         }
         
@@ -192,10 +200,11 @@ class CarrierDetector {
             return nil
         }
         
-        return CarrierInfo(
+        return createEnhancedCarrierInfo(
             carrier: carrier,
             confidence: .medium,
-            detectedName: carrierName
+            detectedName: carrierName,
+            method: .carrierName
         )
     }
     
@@ -245,10 +254,11 @@ class CarrierDetector {
             return nil
         }
         
-        return CarrierInfo(
+        return createEnhancedCarrierInfo(
             carrier: carrier,
             confidence: .medium,
-            detectedName: name
+            detectedName: name,
+            method: .carrierName
         )
     }
     
@@ -331,10 +341,11 @@ class CarrierDetector {
         for (pattern, carrier) in carrierMatches {
             if lowercasedName.contains(pattern) {
                 print("  Matched pattern '\(pattern)' -> \(carrier)")
-                return CarrierInfo(
+                return createEnhancedCarrierInfo(
                     carrier: carrier,
                     confidence: .medium,
-                    detectedName: name
+                    detectedName: name,
+                    method: .carrierName
                 )
             }
         }
@@ -389,5 +400,66 @@ class CarrierDetector {
         let isWiFi = !flags.contains(.isWWAN)
         
         return isReachable && !needsConnection && isWiFi
+    }
+    
+    // MARK: - Enhanced Wi-Fi Calling Detection Methods
+    
+    private func checkWiFiCallingSupport() -> Bool {
+        // Check if any carrier allows VoIP (indicator of WiFi calling support)
+        if let providers = networkInfo.serviceSubscriberCellularProviders {
+            return providers.values.contains { $0.allowsVOIP }
+        }
+        
+        return networkInfo.subscriberCellularProvider?.allowsVOIP ?? false
+    }
+    
+    private func extractCarrierDetails() -> [CarrierDetails] {
+        var details: [CarrierDetails] = []
+        
+        // Extract from multiple providers (dual SIM)
+        if let providers = networkInfo.serviceSubscriberCellularProviders {
+            for (serviceIdentifier, provider) in providers {
+                details.append(CarrierDetails(
+                    name: provider.carrierName ?? "Unknown",
+                    mcc: provider.mobileCountryCode ?? "",
+                    mnc: provider.mobileNetworkCode ?? "",
+                    serviceIdentifier: serviceIdentifier,
+                    allowsVOIP: provider.allowsVOIP
+                ))
+            }
+        } else if let provider = networkInfo.subscriberCellularProvider {
+            // Single SIM fallback
+            details.append(CarrierDetails(
+                name: provider.carrierName ?? "Unknown",
+                mcc: provider.mobileCountryCode ?? "",
+                mnc: provider.mobileNetworkCode ?? "",
+                serviceIdentifier: "primary",
+                allowsVOIP: provider.allowsVOIP
+            ))
+        }
+        
+        return details
+    }
+    
+    private func createEnhancedCarrierInfo(
+        carrier: CarrierType,
+        confidence: CarrierInfo.Confidence,
+        detectedName: String?,
+        method: CarrierInfo.DetectionMethod,
+        carrierDetails: [CarrierDetails]? = nil
+    ) -> CarrierInfo {
+        let isOnWiFi = isConnectedToWiFi()
+        let supportsWiFiCalling = checkWiFiCallingSupport()
+        let details = carrierDetails ?? extractCarrierDetails()
+        
+        return CarrierInfo(
+            carrier: carrier,
+            confidence: confidence,
+            detectedName: detectedName,
+            isOnWiFi: isOnWiFi,
+            supportsWiFiCalling: supportsWiFiCalling,
+            detectionMethod: method,
+            carrierDetails: details
+        )
     }
 }
