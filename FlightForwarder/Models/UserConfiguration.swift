@@ -19,7 +19,8 @@ struct UserConfiguration: Codable {
         promptStyle: PromptPreferences = .detailed,
         setupDate: Date = Date(),
         customForwardingCode: String? = nil,
-        customDisableCode: String? = nil
+        customDisableCode: String? = nil,
+        disableOption: DisableForwardingOption = .automatic
     ) {
         self.carrier = carrier
         self.forwardingNumber = forwardingNumber
@@ -29,6 +30,7 @@ struct UserConfiguration: Codable {
         self.setupDate = setupDate
         self.customForwardingCode = customForwardingCode
         self.customDisableCode = customDisableCode
+        self.disableOption = disableOption
     }
     
     var isValid: Bool {

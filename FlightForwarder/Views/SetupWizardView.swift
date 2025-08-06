@@ -114,7 +114,8 @@ struct SetupWizardView: View {
             forwardingNumber: formattedNumber,
             detectionMethods: selectedDetectionMethods,
             internationalBehavior: internationalBehavior,
-            promptStyle: promptStyle
+            promptStyle: promptStyle,
+            disableOption: disableOption
         )
         configurationManager.update(configuration: config)
         dismiss()
