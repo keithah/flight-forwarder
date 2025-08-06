@@ -16,6 +16,48 @@ struct SettingsView: View {
                     ConfigurationRow(label: "Setup Date", value: configurationManager.configuration.setupDate.formatted(date: .abbreviated, time: .omitted))
                 }
                 
+                Section("Device Information") {
+                    if let simStatus = configurationManager.simStatus {
+                        ConfigurationRow(
+                            label: "SIM Status", 
+                            value: simStatus.isUnlocked ? "Unlocked" : "Status Unknown"
+                        )
+                        
+                        ConfigurationRow(
+                            label: "Dual SIM", 
+                            value: simStatus.isDualSIM ? "Yes (\(simStatus.simCount) slots)" : "No"
+                        )
+                        
+                        if simStatus.confidence == .low {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("SIM Status Note")
+                                    .font(.caption)
+                                    .foregroundColor(.primary)
+                                Text("Cannot determine if SIM is locked due to iOS privacy restrictions. Most carrier-sold phones are unlocked after contract completion.")
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    } else {
+                        ConfigurationRow(label: "SIM Status", value: "Checking...")
+                    }
+                    
+                    if let detectedCarrier = configurationManager.detectedCarrier {
+                        let detectionMethod = getCarrierDetectionMethod()
+                        ConfigurationRow(label: "Detected Carrier", value: detectedCarrier.rawValue)
+                        ConfigurationRow(label: "Detection Method", value: detectionMethod)
+                        
+                        let confidence = configurationManager.carrierConfidence
+                        ConfigurationRow(
+                            label: "Detection Confidence", 
+                            value: confidence == .high ? "High" : confidence == .medium ? "Medium" : "Low"
+                        )
+                    } else {
+                        ConfigurationRow(label: "Carrier Detection", value: "Failed")
+                    }
+                }
+                
                 Section("Actions") {
                     Button(action: { showingEditWizard = true }) {
                         Label("Edit Configuration", systemImage: "pencil.circle")
@@ -42,13 +84,18 @@ struct SettingsView: View {
                     HStack {
                         Text("License")
                         Spacer()
-                        Text("MIT")
+                        Text("Apache 2.0")
                             .foregroundColor(.secondary)
                     }
                 }
                 
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
+                        Text("Envisioned by @keithah, written by Claude")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .italic()
+                        
                         Text("Privacy Notice")
                             .font(.headline)
                         Text("This app processes all data locally on your device. No information is sent to external servers. The generated shortcuts work independently without this app.")
@@ -80,6 +127,24 @@ struct SettingsView: View {
                 SetupWizardView()
                     .environmentObject(configurationManager)
             }
+        }
+    }
+    
+    private func getCarrierDetectionMethod() -> String {
+        guard let detectedName = configurationManager.detectedCarrierName else {
+            return "Unknown"
+        }
+        
+        if detectedName == "Wi-Fi Calling Active" {
+            return "Wi-Fi calling blocked detection"
+        } else if detectedName == "Detection Failed" {
+            return "All methods failed"
+        } else if configurationManager.carrierConfidence == .high {
+            return "MNC code mapping"
+        } else if configurationManager.carrierConfidence == .medium {
+            return "Carrier name matching"
+        } else {
+            return "Manual selection required"
         }
     }
 }

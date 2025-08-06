@@ -549,12 +549,32 @@ struct PreferencesStep: View {
                         .font(.headline)
                     
                     ForEach(PromptPreferences.allCases, id: \.self) { style in
-                        RadioButton(
-                            title: style.rawValue,
-                            description: style.description,
-                            isSelected: promptStyle == style,
-                            action: { promptStyle = style }
-                        )
+                        VStack(alignment: .leading, spacing: 8) {
+                            RadioButton(
+                                title: style.rawValue,
+                                description: style.description,
+                                isSelected: promptStyle == style,
+                                action: { promptStyle = style }
+                            )
+                            
+                            if promptStyle == style {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Example:")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                    Text(style.examplePrompt)
+                                        .font(.caption2)
+                                        .foregroundColor(.blue)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(Color.blue.opacity(0.1))
+                                        .cornerRadius(6)
+                                }
+                                .padding(.leading, 24)
+                                .transition(.opacity)
+                                .animation(.easeInOut(duration: 0.2), value: promptStyle)
+                            }
+                        }
                     }
                 }
             }
