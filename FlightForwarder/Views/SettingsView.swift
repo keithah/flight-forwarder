@@ -56,6 +56,20 @@ struct SettingsView: View {
                     } else {
                         ConfigurationRow(label: "Carrier Detection", value: "Failed")
                     }
+                    
+                    // Show WHOIS technical details if available
+                    if let detectedName = configurationManager.detectedCarrierName,
+                       detectedName == "Detection Failed" {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Technical Details")
+                                .font(.caption)
+                                .foregroundColor(.primary)
+                            Text("IP WHOIS lookup says: [WHOIS data will be shown here when available]")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
                 }
                 
                 Section("Actions") {
@@ -142,8 +156,12 @@ struct SettingsView: View {
         } else if configurationManager.carrierConfidence == .high {
             return "MNC code mapping"
         } else if configurationManager.carrierConfidence == .medium {
-            return "Carrier name matching"
+            return "Carrier name matching"  
         } else {
+            // Check if this might be WHOIS detection
+            if detectedName.lowercased().contains("whois") {
+                return "WHOIS IP lookup"
+            }
             return "Manual selection required"
         }
     }

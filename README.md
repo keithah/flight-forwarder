@@ -49,11 +49,15 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 ## Key Features
 
 ### Smart Configuration
-- **Automatic Carrier Detection**: Uses MNC codes and carrier names for reliable detection
+- **Multi-Layer Carrier Detection**: 
+  - Primary: MNC codes and carrier names for reliable detection
+  - Wi-Fi Calling Detection: Handles scenarios where Wi-Fi calling blocks carrier info
+  - WHOIS Fallback: Last resort IP-based carrier detection via WHOIS lookup
 - **SIM Status Detection**: Checks for unlocked SIM and dual SIM capability
-- **Google Voice Integration**: Guided setup flow with Wi-Fi calling configuration
+- **Google Voice Integration**: Streamlined 3-step setup with Wi-Fi calling configuration
 - **International Phone Support**: Supports international phone numbers with + prefix
-- **Multiple Detection Methods**: 
+- **Custom Carrier Support**: Manual entry for carriers not in predefined list
+- **Multiple Flight Detection Methods**: 
   - Calendar events (flight keywords, airline codes)
   - Location detection (airports)
   - Apple Wallet boarding passes
@@ -105,10 +109,10 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
    - Launch the app and check SIM status
    - Complete the 7-step setup wizard:
      - Review SIM status and unlock benefits
-     - Confirm your carrier (auto-detected via MNC codes)
+     - Confirm your carrier (auto-detected via multiple methods)
      - Enter forwarding phone number or set up Google Voice
      - Select detection methods (calendar, location, wallet)
-     - Choose international behavior and prompt styles
+     - Choose international behavior and prompt styles with examples
      - Configure automatic disable options
      - Review and complete setup
 
@@ -128,13 +132,31 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 
 | Carrier | Enable Code | Disable Code | Detection Method | Status |
 |---------|------------|--------------|------------------|--------|
-| Verizon | *72[number] | *73 | MNC code mapping | ⚠️ Needs testing |
-| AT&T | **21*[number]# | ##21# | MNC code mapping | ⚠️ Needs testing |
-| T-Mobile | **21*[number]# | ##21# | MNC code mapping | ⚠️ Needs testing |
-| Google Fi | App/Website | App/Website | Name matching | ⚠️ Needs testing |
-| Visible | *72[number] | *73 | MNC code mapping | ⚠️ Needs testing |
+| Verizon | *72[number] | *73 | MNC code / WHOIS | ⚠️ Needs testing |
+| AT&T | **21*[number]# | ##21# | MNC code / WHOIS | ⚠️ Needs testing |
+| T-Mobile | **21*[number]# | ##21# | MNC code / WHOIS | ⚠️ Needs testing |
+| Google Fi | App/Website | App/Website | Name / WHOIS | ⚠️ Needs testing |
+| Visible | *72[number] | *73 | MNC code / WHOIS | ⚠️ Needs testing |
 | Mint Mobile | **21*[number]# | ##21# | T-Mobile network | ⚠️ Needs testing |
 | Other (Custom) | [Custom code] | [Custom code] | Manual entry | ⚠️ Needs testing |
+
+### Carrier Detection Methods
+
+**Primary Detection:**
+- **MNC Code Mapping**: Uses Mobile Network Code for high-confidence detection
+- **Carrier Name Matching**: Fallback using carrier name from SIM
+
+**Advanced Detection:**
+- **Wi-Fi Calling Detection**: Identifies when Wi-Fi calling blocks carrier info
+- **WHOIS IP Lookup**: Last resort method using cellular IP and WHOIS databases
+- **Dual SIM Support**: Detects carriers on both SIM slots
+
+**Detection Flow:**
+1. Try MNC code mapping (highest confidence)
+2. Try carrier name matching 
+3. Check for Wi-Fi calling interference
+4. Fallback to WHOIS IP lookup (cellular interface → IP → carrier ownership)
+5. Show technical details for troubleshooting
 
 ## Architecture
 
@@ -162,7 +184,10 @@ FlightForwarder/
 
 ### Technical Stack
 - **SwiftUI** for modern, declarative UI
-- **Core Telephony** for carrier detection
+- **Core Telephony** for primary carrier detection
+- **Network Framework** for advanced carrier detection
+- **System Configuration** for network interface analysis
+- **WHOIS Integration** for IP-based carrier lookup
 - **UserDefaults** for storing user preferences
 - **ShareSheet** for shortcut export
 - **iOS 15+** for modern Shortcuts features
