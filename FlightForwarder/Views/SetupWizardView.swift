@@ -60,6 +60,9 @@ struct SetupWizardView: View {
                     Spacer()
                     
                     Button(currentStep < steps.count - 1 ? "Next" : "Complete") {
+                        // Dismiss keyboard before transitioning
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        
                         if currentStep < steps.count - 1 {
                             withAnimation {
                                 currentStep += 1
@@ -140,6 +143,7 @@ struct ProgressBar: View {
 struct CarrierSelectionStep: View {
     @EnvironmentObject var configurationManager: ConfigurationManager
     @Binding var selectedCarrier: CarrierType
+    @State private var showManualSelection = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -149,26 +153,68 @@ struct CarrierSelectionStep: View {
                 .padding(.horizontal)
             
             if let detected = configurationManager.detectedCarrier {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("Detected: \(detected.rawValue)")
-                        .fontWeight(.medium)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack {
+                        Image(systemName: configurationManager.carrierConfidence == .high ? "checkmark.circle.fill" : "questionmark.circle.fill")
+                            .foregroundColor(configurationManager.carrierConfidence == .high ? .green : .orange)
+                        VStack(alignment: .leading) {
+                            Text("Detected: \(detected.rawValue)")
+                                .fontWeight(.medium)
+                            if let detectedName = configurationManager.detectedCarrierName {
+                                Text("Network: \(detectedName)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    
+                    if configurationManager.carrierConfidence != .high {
+                        Button("Not correct? Select manually") {
+                            showManualSelection = true
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                    }
                 }
+                .padding()
+                .background(Color(UIColor.systemGray6))
+                .cornerRadius(12)
                 .padding(.horizontal)
             }
             
-            ScrollView {
-                VStack(spacing: 12) {
-                    ForEach(CarrierType.allCases, id: \.self) { carrier in
-                        CarrierRow(
-                            carrier: carrier,
-                            isSelected: selectedCarrier == carrier,
-                            action: { selectedCarrier = carrier }
-                        )
+            if showManualSelection || configurationManager.detectedCarrier == nil || configurationManager.carrierConfidence == .low {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(CarrierType.allCases, id: \.self) { carrier in
+                            CarrierRow(
+                                carrier: carrier,
+                                isSelected: selectedCarrier == carrier,
+                                action: { 
+                                    selectedCarrier = carrier
+                                    showManualSelection = false
+                                }
+                            )
+                        }
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
+            } else if configurationManager.carrierConfidence == .high {
+                // High confidence - just show the selected carrier
+                VStack {
+                    CarrierRow(
+                        carrier: selectedCarrier,
+                        isSelected: true,
+                        action: {}
+                    )
+                    .padding(.horizontal)
+                    
+                    Button("Choose a different carrier") {
+                        showManualSelection = true
+                    }
+                    .font(.caption)
+                    .foregroundColor(.blue)
+                    .padding(.top, 8)
+                }
             }
             
             if selectedCarrier.requiresAppForForwarding {
@@ -274,6 +320,10 @@ struct PhoneNumberStep: View {
             Spacer()
         }
         .padding(.vertical)
+        .onTapGesture {
+            // Dismiss keyboard when tapping outside
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
     }
 }
 

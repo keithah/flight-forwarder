@@ -11,7 +11,10 @@ Instead of building one complex shortcut that works for everyone, create an app 
 ## Key Features
 
 ### Smart Configuration
-- **Automatic carrier detection** (Verizon, AT&T, T-Mobile, Google Fi, Visible, Mint Mobile)
+- **Automatic carrier detection** using Core Telephony APIs
+  - MNC code mapping for high-confidence detection
+  - Carrier name fallback for medium confidence
+  - Manual selection option always available
 - **Phone number validation** with country code support
 - **Multiple flight detection methods:**
   - Calendar events (flight keywords, airline codes)

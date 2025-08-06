@@ -5,10 +5,12 @@ import CoreTelephony
 class ConfigurationManager: ObservableObject {
     @Published var configuration: UserConfiguration
     @Published var detectedCarrier: CarrierType?
+    @Published var carrierConfidence: CarrierDetector.CarrierInfo.Confidence = .low
+    @Published var detectedCarrierName: String?
     
     private let userDefaults = UserDefaults.standard
     private let configKey = "userConfiguration"
-    private let networkInfo = CTTelephonyNetworkInfo()
+    private let carrierDetector = CarrierDetector()
     
     init() {
         if let data = userDefaults.data(forKey: configKey),
@@ -33,25 +35,15 @@ class ConfigurationManager: ObservableObject {
     }
     
     func detectCarrier() {
-        if let carriers = networkInfo.serviceSubscriberCellularProviders {
-            for (_, carrier) in carriers {
-                if let carrierName = carrier.carrierName?.lowercased() {
-                    if carrierName.contains("verizon") {
-                        detectedCarrier = .verizon
-                    } else if carrierName.contains("at&t") || carrierName.contains("att") {
-                        detectedCarrier = .att
-                    } else if carrierName.contains("t-mobile") || carrierName.contains("tmobile") {
-                        detectedCarrier = .tmobile
-                    } else if carrierName.contains("google") && carrierName.contains("fi") {
-                        detectedCarrier = .googleFi
-                    } else if carrierName.contains("visible") {
-                        detectedCarrier = .visible
-                    } else if carrierName.contains("mint") {
-                        detectedCarrier = .mintMobile
-                    }
-                    break
-                }
-            }
+        let carrierInfo = carrierDetector.detectCarrier()
+        
+        detectedCarrier = carrierInfo.carrier
+        carrierConfidence = carrierInfo.confidence
+        detectedCarrierName = carrierInfo.detectedName
+        
+        // If we have high confidence and no saved configuration, auto-select this carrier
+        if carrierInfo.confidence == .high && !configuration.isValid {
+            configuration.carrier = carrierInfo.carrier
         }
     }
     
