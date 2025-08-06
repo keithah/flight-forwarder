@@ -10,6 +10,10 @@ struct GoogleVoiceSetupView: View {
     @State private var isValidating = false
     @State private var googleVoiceAppAvailable = false
     
+    var currentStepSafe: Int {
+        return min(max(currentStep, 0), steps.count - 1)
+    }
+    
     let steps = [
         SetupStep(
             title: "Open Google Voice",
@@ -48,23 +52,23 @@ struct GoogleVoiceSetupView: View {
         NavigationView {
             VStack(spacing: 0) {
                 // Progress indicator
-                ProgressView(value: Double(currentStep + 1), total: Double(steps.count))
+                ProgressView(value: Double(currentStepSafe + 1), total: Double(steps.count))
                     .padding()
                 
                 if !showWebView {
                     // Step content
                     VStack(spacing: 24) {
-                        Image(systemName: steps[currentStep].icon)
+                        Image(systemName: steps[currentStepSafe].icon)
                             .font(.system(size: 60))
                             .foregroundColor(.blue)
                             .padding()
                         
-                        Text(steps[currentStep].title)
+                        Text(steps[currentStepSafe].title)
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .multilineTextAlignment(.center)
                         
-                        Text(steps[currentStep].instruction)
+                        Text(steps[currentStepSafe].instruction)
                             .font(.body)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -158,7 +162,7 @@ struct GoogleVoiceSetupView: View {
                             // Continue button
                             Button(action: {
                                 showWebView = false
-                                currentStep = 3
+                                currentStep = 1  // Go to number entry step
                             }) {
                                 Text("I've found my number")
                                     .frame(maxWidth: .infinity)
@@ -189,7 +193,7 @@ struct GoogleVoiceSetupView: View {
     }
     
     var actionButtonText: String {
-        switch steps[currentStep].action {
+        switch steps[currentStepSafe].action {
         case .openApp:
             return googleVoiceAppAvailable ? "Open Google Voice App" : "Open Google Voice Website"
         case .enterNumber:
@@ -200,7 +204,7 @@ struct GoogleVoiceSetupView: View {
     }
     
     func handleStepAction() {
-        switch steps[currentStep].action {
+        switch steps[currentStepSafe].action {
         case .openApp:
             if googleVoiceAppAvailable {
                 openGoogleVoiceApp()
@@ -275,8 +279,8 @@ struct GoogleVoiceSetupView: View {
         if let url = URL(string: "googlevoice://") {
             UIApplication.shared.open(url) { success in
                 if success {
-                    // Move to copy step since user will find number in app
-                    currentStep = 3
+                    // Move to number entry step since user will find number in app
+                    currentStep = 1
                 } else {
                     // Fallback to web view
                     showWebView = true
