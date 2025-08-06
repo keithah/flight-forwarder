@@ -50,12 +50,14 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 
 ### Smart Configuration
 - **Automatic Carrier Detection**: Uses MNC codes and carrier names for reliable detection
-- **Google Voice Integration**: Guided setup flow for using Google Voice as forwarding number
-- **Phone Number Validation**: Ensures proper formatting with country code support
+- **SIM Status Detection**: Checks for unlocked SIM and dual SIM capability
+- **Google Voice Integration**: Guided setup flow with Wi-Fi calling configuration
+- **International Phone Support**: Supports international phone numbers with + prefix
 - **Multiple Detection Methods**: 
   - Calendar events (flight keywords, airline codes)
   - Location detection (airports)
   - Apple Wallet boarding passes
+- **Smart Disable Options**: Choose when to automatically disable forwarding after travel
 
 ### Personalized Export
 - Generates shortcuts with 10-20 actions instead of 100+
@@ -66,8 +68,9 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 ### Privacy First
 - All processing happens locally on device
 - No analytics or telemetry
-- No internet connection required
+- No internet connection required after setup
 - Open source under AGPL v3 license
+- Transparent device information in Settings
 
 ## Installation
 
@@ -99,12 +102,15 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 ⚠️ **Note: These steps are theoretical - not yet tested on real devices!**
 
 1. **Initial Setup**
-   - Launch the app
-   - Complete the setup wizard
-   - Confirm your carrier (auto-detected)
-   - Enter forwarding phone number
-   - Select detection methods
-   - Choose preferences
+   - Launch the app and check SIM status
+   - Complete the 7-step setup wizard:
+     - Review SIM status and unlock benefits
+     - Confirm your carrier (auto-detected via MNC codes)
+     - Enter forwarding phone number or set up Google Voice
+     - Select detection methods (calendar, location, wallet)
+     - Choose international behavior and prompt styles
+     - Configure automatic disable options
+     - Review and complete setup
 
 2. **Export Shortcut**
    - Preview your configuration
@@ -120,14 +126,15 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 
 ## Carrier Support
 
-| Carrier | Enable Code | Disable Code | Status |
-|---------|------------|--------------|--------|
-| Verizon | *72[number] | *73 | ⚠️ Needs testing |
-| AT&T | **21*[number]# | ##21# | ⚠️ Needs testing |
-| T-Mobile | **21*[number]# | ##21# | ⚠️ Needs testing |
-| Google Fi | App/Website | App/Website | ⚠️ Needs testing |
-| Visible | *72[number] | *73 | ⚠️ Needs testing |
-| Mint Mobile | **21*[number]# | ##21# | ⚠️ Needs testing |
+| Carrier | Enable Code | Disable Code | Detection Method | Status |
+|---------|------------|--------------|------------------|--------|
+| Verizon | *72[number] | *73 | MNC code mapping | ⚠️ Needs testing |
+| AT&T | **21*[number]# | ##21# | MNC code mapping | ⚠️ Needs testing |
+| T-Mobile | **21*[number]# | ##21# | MNC code mapping | ⚠️ Needs testing |
+| Google Fi | App/Website | App/Website | Name matching | ⚠️ Needs testing |
+| Visible | *72[number] | *73 | MNC code mapping | ⚠️ Needs testing |
+| Mint Mobile | **21*[number]# | ##21# | T-Mobile network | ⚠️ Needs testing |
+| Other (Custom) | [Custom code] | [Custom code] | Manual entry | ⚠️ Needs testing |
 
 ## Architecture
 
@@ -140,12 +147,15 @@ FlightForwarder/
 ├── Views/
 │   ├── ContentView.swift         # Main navigation
 │   ├── WelcomeView.swift         # First-time user onboarding
-│   ├── SetupWizardView.swift     # Step-by-step configuration
+│   ├── SetupWizardView.swift     # 7-step configuration wizard
+│   ├── GoogleVoiceSetupView.swift # Google Voice integration flow
 │   ├── PreviewView.swift         # Show generated shortcut preview
 │   ├── ExportView.swift          # Share shortcut with instructions
-│   └── SettingsView.swift        # Modify existing configuration
+│   └── SettingsView.swift        # Device info and configuration
 ├── Core/
 │   ├── ConfigurationManager.swift # Handle user preferences
+│   ├── CarrierDetection.swift     # Automatic carrier detection via MNC
+│   ├── SIMStatusDetector.swift    # SIM unlock and dual SIM detection
 │   └── ShortcutGenerator.swift    # Generate shortcut actions
 └── FlightForwarderApp.swift       # Main app entry point
 ```
@@ -211,7 +221,7 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 - Apple Shortcuts team for the powerful automation framework
 - Business travelers who provided the initial use case
 - Contributors and testers from the iOS community
-- Claude Code for rapid prototyping and development
+- Envisioned by @keithah, written by Claude via Claude Code
 
 ---
 

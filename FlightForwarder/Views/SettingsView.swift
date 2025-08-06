@@ -84,7 +84,7 @@ struct SettingsView: View {
                     HStack {
                         Text("License")
                         Spacer()
-                        Text("Apache 2.0")
+                        Text("AGPL v3")
                             .foregroundColor(.secondary)
                     }
                 }
