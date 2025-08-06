@@ -7,6 +7,9 @@ struct UserConfiguration: Codable {
     let internationalBehavior: InternationalOptions
     let promptStyle: PromptPreferences
     let setupDate: Date
+    let customForwardingCode: String?
+    let customDisableCode: String?
+    let disableOption: DisableForwardingOption
     
     init(
         carrier: CarrierType = .verizon,
@@ -14,7 +17,9 @@ struct UserConfiguration: Codable {
         detectionMethods: Set<DetectionMethod> = [.calendar, .location],
         internationalBehavior: InternationalOptions = .alwaysForward,
         promptStyle: PromptPreferences = .detailed,
-        setupDate: Date = Date()
+        setupDate: Date = Date(),
+        customForwardingCode: String? = nil,
+        customDisableCode: String? = nil
     ) {
         self.carrier = carrier
         self.forwardingNumber = forwardingNumber
@@ -22,6 +27,8 @@ struct UserConfiguration: Codable {
         self.internationalBehavior = internationalBehavior
         self.promptStyle = promptStyle
         self.setupDate = setupDate
+        self.customForwardingCode = customForwardingCode
+        self.customDisableCode = customDisableCode
     }
     
     var isValid: Bool {
@@ -29,7 +36,20 @@ struct UserConfiguration: Codable {
     }
     
     var formattedForwardingNumber: String {
-        carrier.formatForwardingNumber(forwardingNumber)
+        if carrier == .other, let customCode = customForwardingCode {
+            let cleanNumber = forwardingNumber.replacingOccurrences(of: "[^0-9+]", with: "", options: .regularExpression)
+            return "\(customCode)\(cleanNumber)"
+        } else {
+            return carrier.formatForwardingNumber(forwardingNumber)
+        }
+    }
+    
+    var customDisableCodeFormatted: String {
+        if carrier == .other, let customDisable = customDisableCode {
+            return customDisable
+        } else {
+            return carrier.disableCode
+        }
     }
 }
 
@@ -91,6 +111,34 @@ enum PromptPreferences: String, CaseIterable, Codable {
             return "Show flight details in prompts"
         case .silent:
             return "Forward without prompting (use with caution)"
+        }
+    }
+    
+    var examplePrompt: String {
+        switch self {
+        case .minimal:
+            return "Forward calls now? Yes/No"
+        case .detailed:
+            return "Flight AA1234 to London detected departing at 2:30 PM. Forward calls to +1234567890? Yes/No"
+        case .silent:
+            return "(No prompt - automatically forwards)"
+        }
+    }
+}
+
+enum DisableForwardingOption: String, CaseIterable, Codable {
+    case automatic = "Automatic"
+    case prompt = "Prompt"
+    case manual = "Manual"
+    
+    var description: String {
+        switch self {
+        case .automatic:
+            return "Try to automatically detect when you fly back to the US and disable when you arrive"
+        case .prompt:
+            return "Ask for a date/time you arrive home to prompt you to disable forwarding"
+        case .manual:
+            return "Never automatically disable - you'll manage it manually"
         }
     }
 }

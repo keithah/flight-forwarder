@@ -7,7 +7,7 @@ enum CarrierType: String, CaseIterable, Codable {
     case googleFi = "Google Fi"
     case visible = "Visible"
     case mintMobile = "Mint Mobile"
-    case other = "Other"
+    case other = "Other (Custom)"
     
     var forwardingCode: String {
         switch self {

@@ -266,10 +266,18 @@ class CarrierDetector {
         if let serviceRadioTech = networkInfo.serviceCurrentRadioAccessTechnology {
             for (key, tech) in serviceRadioTech {
                 print("  Service \(key) radio tech: \(tech)")
+                
+                // Use radio tech patterns to make educated guesses
+                // Different carriers have different network deployment patterns
+                if tech.contains("NRNSA") || tech.contains("NR") {
+                    print("  Found 5G technology - likely major carrier")
+                    // 5G deployment patterns vary by carrier, but this indicates a major carrier
+                    // We could potentially use this with other heuristics
+                }
             }
         }
         
-        return nil // This method doesn't directly give us carrier info
+        return nil // Still no direct carrier mapping from radio tech alone
     }
     
     private func detectCarrierByServiceRadio() -> CarrierInfo? {

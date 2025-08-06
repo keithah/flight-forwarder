@@ -10,8 +10,9 @@ struct SetupWizardView: View {
     @State private var selectedDetectionMethods: Set<DetectionMethod> = [.calendar, .location]
     @State private var internationalBehavior: InternationalOptions = .alwaysForward
     @State private var promptStyle: PromptPreferences = .detailed
+    @State private var disableOption: DisableForwardingOption = .automatic
     
-    let steps = ["SIM Status", "Carrier", "Phone Number", "Detection", "Preferences", "Review"]
+    let steps = ["SIM Status", "Carrier", "Phone Number", "Detection", "Preferences", "Disable Options", "Review"]
     
     var body: some View {
         NavigationView {
