@@ -179,6 +179,16 @@ struct GoogleVoiceSetupView: View {
             .navigationTitle("Google Voice Setup")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if currentStep > 0 && !showWebView {
+                        Button("Back") {
+                            withAnimation {
+                                currentStep -= 1
+                            }
+                        }
+                    }
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Cancel") {
                         isPresented = false
