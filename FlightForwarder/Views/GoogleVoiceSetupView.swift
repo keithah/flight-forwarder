@@ -12,34 +12,22 @@ struct GoogleVoiceSetupView: View {
     
     let steps = [
         SetupStep(
-            title: "Check Google Voice Settings",
-            instruction: "First, we need to ensure Google Voice can make calls over Wi-Fi",
-            icon: "gear",
-            action: .checkSettings
-        ),
-        SetupStep(
             title: "Open Google Voice",
-            instruction: "We'll open Google Voice where you can find your number",
-            icon: "globe",
-            action: .openWebView
+            instruction: "We'll help you get your number and configure Wi-Fi calling",
+            icon: "phone.circle",
+            action: .openApp
         ),
         SetupStep(
-            title: "Find Your Number",
-            instruction: "Look for your Google Voice number at the top of the page or in Settings",
-            icon: "magnifyingglass",
-            action: .showGuide
+            title: "Put Your Google Voice Number Here",
+            instruction: "Enter your Google Voice number from the app or website",
+            icon: "textformat.123",
+            action: .enterNumber
         ),
         SetupStep(
-            title: "Copy Your Number",
-            instruction: "Long press on your number and select 'Copy'",
-            icon: "doc.on.doc",
-            action: .waitForCopy
-        ),
-        SetupStep(
-            title: "Paste & Verify",
-            instruction: "Paste your Google Voice number below",
-            icon: "checkmark.circle",
-            action: .pasteNumber
+            title: "Enable Wi-Fi Calling",
+            instruction: "Find and enable 'Prefer Wi-Fi and mobile data' setting",
+            icon: "wifi",
+            action: .configureWiFi
         )
     ]
     
@@ -50,11 +38,9 @@ struct GoogleVoiceSetupView: View {
         let action: StepAction
         
         enum StepAction {
-            case checkSettings
-            case openWebView
-            case showGuide
-            case waitForCopy
-            case pasteNumber
+            case openApp
+            case enterNumber
+            case configureWiFi
         }
     }
     
@@ -84,23 +70,11 @@ struct GoogleVoiceSetupView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
-                        if currentStep == 0 {
-                            // Google Voice settings guide
-                            GoogleVoiceSettingsGuide()
-                                .padding()
-                        }
-                        
-                        if currentStep == 2 {
-                            // Visual guide for finding the number
-                            GoogleVoiceGuideView()
-                                .padding()
-                        }
-                        
-                        if currentStep == 4 {
-                            // Paste field
+                        if currentStep == 1 {
+                            // Number entry field
                             VStack(spacing: 16) {
                                 HStack {
-                                    TextField("Paste your Google Voice number", text: $copiedNumber)
+                                    TextField("Enter your Google Voice number", text: $copiedNumber)
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                         .keyboardType(.phonePad)
                                     
@@ -132,6 +106,12 @@ struct GoogleVoiceSetupView: View {
                             }
                         }
                         
+                        if currentStep == 2 {
+                            // Wi-Fi calling configuration guide
+                            WiFiCallingGuide(hasApp: googleVoiceAppAvailable)
+                                .padding()
+                        }
+                        
                         Spacer()
                         
                         // Action buttons
@@ -145,36 +125,8 @@ struct GoogleVoiceSetupView: View {
                                     .cornerRadius(12)
                             }
                             .padding(.horizontal)
-                            .disabled(currentStep == 4 && !isValidGoogleVoiceNumber(copiedNumber))
+                            .disabled(currentStep == 1 && !isValidGoogleVoiceNumber(copiedNumber))
                             
-                            // Show app option on first step if available
-                            if currentStep == 0 && googleVoiceAppAvailable {
-                                Button(action: openGoogleVoiceSettings) {
-                                    HStack {
-                                        Image(systemName: "gear")
-                                        Text("Open Google Voice Settings")
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(12)
-                                }
-                                .padding(.horizontal)
-                            } else if currentStep == 1 && googleVoiceAppAvailable {
-                                Button(action: openGoogleVoiceApp) {
-                                    HStack {
-                                        Image(systemName: "arrow.up.forward.app")
-                                        Text("Open in Google Voice App")
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color(UIColor.secondarySystemBackground))
-                                    .foregroundColor(.blue)
-                                    .cornerRadius(12)
-                                }
-                                .padding(.horizontal)
-                            }
                         }
                     }
                     .padding(.vertical)
@@ -238,35 +190,31 @@ struct GoogleVoiceSetupView: View {
     
     var actionButtonText: String {
         switch steps[currentStep].action {
-        case .checkSettings:
-            return "I've Enabled Wi-Fi Calling"
-        case .openWebView:
-            return "Open Google Voice"
-        case .showGuide:
-            return "Continue"
-        case .waitForCopy:
-            return "I've Copied My Number"
-        case .pasteNumber:
+        case .openApp:
+            return googleVoiceAppAvailable ? "Open Google Voice App" : "Open Google Voice Website"
+        case .enterNumber:
             return "Use This Number"
+        case .configureWiFi:
+            return "I've Enabled Prefer Wi-Fi and Mobile Data"
         }
     }
     
     func handleStepAction() {
         switch steps[currentStep].action {
-        case .checkSettings:
+        case .openApp:
+            if googleVoiceAppAvailable {
+                openGoogleVoiceApp()
+            } else {
+                showWebView = true
+            }
             currentStep += 1
-        case .openWebView:
-            showWebView = true
-        case .showGuide:
-            currentStep += 1
-        case .waitForCopy:
-            currentStep += 1
-            checkClipboard()
-        case .pasteNumber:
+        case .enterNumber:
             if isValidGoogleVoiceNumber(copiedNumber) {
                 forwardingNumber = formatPhoneNumber(copiedNumber)
-                isPresented = false
+                currentStep += 1
             }
+        case .configureWiFi:
+            isPresented = false
         }
     }
     
@@ -491,6 +439,110 @@ struct GoogleVoiceWebView: UIViewRepresentable {
             } else {
                 decisionHandler(.cancel)
             }
+        }
+    }
+}
+
+struct WiFiCallingGuide: View {
+    let hasApp: Bool
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            if hasApp {
+                // Instructions for app users
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("In the Google Voice app:")
+                        .font(.headline)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .top) {
+                            Image(systemName: "1.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Tap Menu (☰) → Settings → Calls")
+                                .font(.body)
+                        }
+                        
+                        HStack(alignment: .top) {
+                            Image(systemName: "2.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Find 'Making & receiving calls'")
+                                .font(.body)
+                        }
+                        
+                        HStack(alignment: .top) {
+                            Image(systemName: "3.circle.fill")
+                                .foregroundColor(.blue)
+                            VStack(alignment: .leading) {
+                                Text("Select 'Prefer Wi-Fi and mobile data'")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                Text("NOT 'Use carrier only'")
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
+                        }
+                    }
+                }
+                
+                // Placeholder for video
+                VStack {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 120)
+                        .overlay(
+                            VStack {
+                                Image(systemName: "play.circle")
+                                    .font(.title)
+                                    .foregroundColor(.blue)
+                                Text("Video guide coming soon")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        )
+                        .cornerRadius(8)
+                    Text("Video placeholder - will show step-by-step guide")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+            } else {
+                // Instructions for website users
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("On the Google Voice website:")
+                        .font(.headline)
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .top) {
+                            Image(systemName: "1.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Click Settings (gear icon)")
+                                .font(.body)
+                        }
+                        
+                        HStack(alignment: .top) {
+                            Image(systemName: "2.circle.fill")
+                                .foregroundColor(.blue)
+                            Text("Go to 'Calls' tab")
+                                .font(.body)
+                        }
+                        
+                        HStack(alignment: .top) {
+                            Image(systemName: "3.circle.fill")
+                                .foregroundColor(.blue)
+                            VStack(alignment: .leading) {
+                                Text("Under 'Making & receiving calls', choose:")
+                                    .font(.body)
+                                Text("'Prefer Wi-Fi and mobile data'")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            InfoCard(text: "This setting allows Google Voice to work over Wi-Fi when traveling internationally, ensuring you can receive forwarded calls.")
         }
     }
 }
