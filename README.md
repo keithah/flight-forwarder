@@ -25,6 +25,7 @@ An open-source iOS app that generates custom Apple Shortcuts for intelligent cal
 - [ ] **Verify call forwarding codes** work with actual carriers
 - [ ] **Add proper error handling** for edge cases
 - [ ] **Test calendar/location/wallet detection** with real data
+- [ ] **Test Google Voice integration** - WebView and app detection
 
 ### Medium Priority
 - [ ] **Add app icon** and proper branding
@@ -48,7 +49,8 @@ Flight Forwarder solves the complexity of creating advanced Apple Shortcuts by p
 ## Key Features
 
 ### Smart Configuration
-- **Automatic Carrier Detection**: Detects your carrier (Verizon, AT&T, T-Mobile, Google Fi, Visible, Mint Mobile)
+- **Automatic Carrier Detection**: Uses MNC codes and carrier names for reliable detection
+- **Google Voice Integration**: Guided setup flow for using Google Voice as forwarding number
 - **Phone Number Validation**: Ensures proper formatting with country code support
 - **Multiple Detection Methods**: 
   - Calendar events (flight keywords, airline codes)

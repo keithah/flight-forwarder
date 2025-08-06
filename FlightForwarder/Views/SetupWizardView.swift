@@ -268,6 +268,8 @@ struct PhoneNumberStep: View {
     @EnvironmentObject var configurationManager: ConfigurationManager
     @Binding var forwardingNumber: String
     @State private var showingContactPicker = false
+    @State private var showingGoogleVoiceSetup = false
+    @State private var useGoogleVoice = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
@@ -276,23 +278,91 @@ struct PhoneNumberStep: View {
                 .fontWeight(.bold)
                 .padding(.horizontal)
             
-            Text("Enter the phone number where calls should be forwarded when you're traveling")
+            Text("Choose where to forward your calls while traveling")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .padding(.horizontal)
             
-            VStack(spacing: 16) {
-                HStack {
-                    TextField("Phone number", text: $forwardingNumber)
-                        .keyboardType(.phonePad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    Button(action: { showingContactPicker = true }) {
-                        Image(systemName: "person.crop.circle.fill")
+            VStack(spacing: 20) {
+                // Google Voice option
+                Button(action: { 
+                    useGoogleVoice = true
+                    showingGoogleVoiceSetup = true 
+                }) {
+                    HStack {
+                        Image(systemName: "phone.circle.fill")
                             .font(.title2)
+                            .foregroundColor(.blue)
+                        
+                        VStack(alignment: .leading) {
+                            Text("Use Google Voice")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Text("Forward calls to your Google Voice number")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .foregroundColor(.gray)
                     }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(useGoogleVoice ? Color.blue.opacity(0.1) : Color(UIColor.secondarySystemBackground))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(useGoogleVoice ? Color.blue : Color.clear, lineWidth: 2)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.horizontal)
+                
+                HStack {
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 1)
+                    Text("OR")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 8)
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(height: 1)
                 }
                 .padding(.horizontal)
+                
+                // Manual entry option
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Enter manually")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal)
+                    
+                    HStack {
+                        TextField("Phone number", text: $forwardingNumber)
+                            .keyboardType(.phonePad)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .disabled(useGoogleVoice)
+                            .opacity(useGoogleVoice ? 0.5 : 1.0)
+                            .onChange(of: forwardingNumber) { _ in
+                                if !forwardingNumber.isEmpty {
+                                    useGoogleVoice = false
+                                }
+                            }
+                        
+                        Button(action: { showingContactPicker = true }) {
+                            Image(systemName: "person.crop.circle.fill")
+                                .font(.title2)
+                        }
+                        .disabled(useGoogleVoice)
+                        .opacity(useGoogleVoice ? 0.5 : 1.0)
+                    }
+                    .padding(.horizontal)
+                }
                 
                 if !forwardingNumber.isEmpty {
                     HStack {
@@ -314,7 +384,7 @@ struct PhoneNumberStep: View {
                 }
             }
             
-            InfoCard(text: "This number will receive your calls when forwarding is active. Common options include voicemail, assistant, or family member.")
+            InfoCard(text: useGoogleVoice ? "Google Voice provides a unified number that works across all your devices." : "This number will receive your calls when forwarding is active. Common options include voicemail, assistant, or family member.")
                 .padding(.horizontal)
             
             Spacer()
@@ -323,6 +393,18 @@ struct PhoneNumberStep: View {
         .onTapGesture {
             // Dismiss keyboard when tapping outside
             UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+        .sheet(isPresented: $showingGoogleVoiceSetup) {
+            GoogleVoiceSetupView(
+                forwardingNumber: $forwardingNumber,
+                isPresented: $showingGoogleVoiceSetup
+            )
+        }
+        .onChange(of: forwardingNumber) { newValue in
+            if !newValue.isEmpty && useGoogleVoice {
+                // User completed Google Voice setup
+                useGoogleVoice = true
+            }
         }
     }
 }

@@ -8,5 +8,9 @@
     <string>FlightForwarder needs location access to detect when you're at an airport.</string>
     <key>NSContactsUsageDescription</key>
     <string>FlightForwarder uses contacts to help you select forwarding numbers.</string>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+        <string>googlevoice</string>
+    </array>
 </dict>
 </plist>

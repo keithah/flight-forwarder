@@ -20,6 +20,7 @@
 		FF0001000000000000000011 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000011 /* SettingsView.swift */; };
 		FF0001000000000000000012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000012 /* Assets.xcassets */; };
 		FF0001000000000000000013 /* CarrierDetection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000013 /* CarrierDetection.swift */; };
+		FF0001000000000000000014 /* GoogleVoiceSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0002000000000000000014 /* GoogleVoiceSetupView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +38,7 @@
 		FF0002000000000000000011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FF0002000000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FF0002000000000000000013 /* CarrierDetection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarrierDetection.swift; sourceTree = "<group>"; };
+		FF0002000000000000000014 /* GoogleVoiceSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleVoiceSetupView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +98,7 @@
 				FF0002000000000000000009 /* PreviewView.swift */,
 				FF0002000000000000000010 /* ExportView.swift */,
 				FF0002000000000000000011 /* SettingsView.swift */,
+				FF0002000000000000000014 /* GoogleVoiceSetupView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -190,6 +193,7 @@
 				FF0001000000000000000010 /* ExportView.swift in Sources */,
 				FF0001000000000000000011 /* SettingsView.swift in Sources */,
 				FF0001000000000000000013 /* CarrierDetection.swift in Sources */,
+				FF0001000000000000000014 /* GoogleVoiceSetupView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
