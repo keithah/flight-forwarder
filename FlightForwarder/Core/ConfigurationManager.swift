@@ -43,7 +43,13 @@ class ConfigurationManager: ObservableObject {
         
         // If we have high confidence and no saved configuration, auto-select this carrier
         if carrierInfo.confidence == .high && !configuration.isValid {
-            configuration.carrier = carrierInfo.carrier
+            configuration = UserConfiguration(
+                carrier: carrierInfo.carrier,
+                forwardingNumber: configuration.forwardingNumber,
+                detectionMethods: configuration.detectionMethods,
+                internationalBehavior: configuration.internationalBehavior,
+                promptStyle: configuration.promptStyle
+            )
         }
     }
     

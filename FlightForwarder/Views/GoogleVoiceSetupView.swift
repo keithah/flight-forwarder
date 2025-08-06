@@ -145,7 +145,7 @@ struct GoogleVoiceSetupView: View {
                                     .cornerRadius(12)
                             }
                             .padding(.horizontal)
-                            .disabled(currentStep == 3 && !isValidGoogleVoiceNumber(copiedNumber))
+                            .disabled(currentStep == 4 && !isValidGoogleVoiceNumber(copiedNumber))
                             
                             // Show app option on first step if available
                             if currentStep == 0 && googleVoiceAppAvailable {
